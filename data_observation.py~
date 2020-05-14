@@ -1,0 +1,34 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as mplt
+from scipy.optimize import curve_fit
+
+col=['t','x','y']
+data=pd.read_csv('data.csv',',', names=col)
+x=data['x'].values
+y=data['y'].values
+t=data['t'].values
+mplt.plot(t,x)
+mplt.xlabel('t')
+mplt.ylabel('x')
+mplt.grid()
+mplt.show()
+mplt.plot(t,y)
+mplt.xlabel('t')
+mplt.ylabel('y')
+mplt.grid()
+mplt.show()
+def f(t,w,w1,a):
+    return a*np.sin(w1*t)+(np.sin(w*t))#+np.sin(10*t))
+def g(t,a,w,theta,b):
+    return a*np.sin(w*t+theta)+b
+#mplt.plot(t,f(t))
+#mplt.show()
+#mplt.plot(t,g(t))
+#mplt.show()
+popt, pcov = curve_fit(f, t, x)
+mplt.plot(t,x,label='data')
+mplt.plot(t, f(t, *popt),label='fit')
+mplt.legend()
+mplt.grid()
+mplt.show()

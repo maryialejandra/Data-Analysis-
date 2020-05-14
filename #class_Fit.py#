@@ -1,0 +1,150 @@
+import numpy as np
+import matplotlib.pyplot as mplt
+import pandas as pd
+from scipy.fftpack import fft, ifft,fftfreq,fftshift
+
+##Lectura de datos
+col=['t','x','y']
+data=pd.read_csv('data.csv',',', names=col)
+x=data['x'].values
+y=data['y'].values
+t=data['t'].values
+def chi2(data,fit):
+    d=np.abs((data-fit)**2/data)
+    return np.sum(d) 
+def f(t,a,b,theta,theta2,w1,w2,c):
+    return a*np.cos(w1*2*np.pi*t+theta)+b*np.cos(w2*2*np.pi*t+theta2)+c
+def rd1(t,a,b):
+    return (a*t+b)
+def rd2(t,a,b):
+    return (-a*t+b)
+def g(t,a,theta,b,w):
+    return a*np.sin(w*np.pi*t+theta)+b
+class fitting:
+    def __init__(self,x,t): #Inicialización de las variables
+        self.q=x
+        self.t=t
+    def w_fft(self):
+        N=len(self.q)
+        xf=fftfreq(N,self.t[2]-self.t[1])
+        xf= fftshift(xf)
+        yf=fft(self.q)
+        yplot=fftshift(yf)
+        d=1/N*np.abs(yplot)
+        yfmax1=np.where(d==max(d))
+        xfmax1=xf[yfmax1]
+        yfmax2=np.where(d[:yfmax1[0][1]-5]==max(d[yfmax1[0][0]+5:yfmax1[0][1]-5]))
+        xfmax2=xf[yfmax2]
+        return xfmax1[1],xfmax2[1]
+    def sw_fft(self):
+        N=len(self.q)
+        w=[]
+        for i in range(0,N,700):
+            xf=fftfreq(700,self.t[2]-self.t[1])
+            xf= fftshift(xf)
+            yf=fft(self.q[i*700:(i+1)*700])
+            yplot=fftshift(yf)
+            w.append(max(1/N*np.abs(yplot)))
+        w=np.array(w)
+        return np.mean(w)
+   
+
+    def trams1(self,a,b):
+        return (a*t+b)
+    def trams2(self,a,b):
+        return (-a*t+b)
+    
+    def minimizing_3P_chi(self,a,b,c,g):
+        for i in a:
+            for j in b:
+                for k in c:
+                    if i==a[0]:
+                        yt=g(self.t,i,j,k)
+                        chi=chi2(self.q,yt)
+                        dat=[i,j,k]
+                        
+                        
+                    else:
+                        yt=g(t,i,j,k)
+                        if chi>chi2(self.q,yt):
+                            chi=chi2(self.q,yt)
+                            dat=[i,j,k]
+                        else:
+                            pass
+        return chi,dat
+
+    def minimizing_2P_chi(self,a,b,c,g):
+        for i in a:
+            for j in b:
+                if i==a[0]:
+                    yt=g(self.t,i,j)
+                    chi=chi2(self.q,yt)
+                    dat=[i,j]
+                else:
+                    yt=g(t,i,j)
+                    if chi>chi2(self.q,yt):
+                        chi=chi2(self.q,yt)
+                        dat=[i,j]
+                    else:
+                        pass
+        return chi,dat
+    
+    def minimizing_5P_chi(self,a,b,theta1,theta2,c,w1,w2,g):
+        for i in a:
+            for j in b:
+                for k in c:
+                    for t1 in theta1:
+                        for t2 in theta2:
+                            if i==a[0]:
+                                yt=g(self.t,i,j,t1,t2,w1,w2,k)
+                                chi=chi2(self.q,yt)
+                                dat=[i,j,t1,t2,w1,w2,k]
+
+                            else:
+                                yt=g(self.t,i,j,t1,t2,w1,w2,k)
+                                if chi>chi2(self.q,yt):
+                                    chi=chi2(self.q,yt)
+                                    dat=[i,j,t1,t2,w1,w2,k]
+                                else:
+                                    pass
+        return chi,dat
+    #def minimizin
+Px=fitting(x,t)
+Py=fitting(y,t)
+wx1,wx2=Px.w_fft()
+b=np.arange(-2,-1,0.1)
+a=np.arange(1,2,0.1)
+c=np.arange(-0.5,0.5,0.1)
+d1=np.arange(-5,5,0.2)
+d2=np.arange(1,2,0.1)
+chi,pxfit=Px.minimizing_5P_chi(a,b,d1,d2,c,wx1,wx2,f)
+mplt.plot(Px.t,Px.q)
+mplt.plot(Px.t,f(Px.t,*pxfit))
+mplt.xlabel('t')
+mplt.ylabel('x')
+mplt.grid()
+mplt.savefig('estmx_md1.png')
+mplt.show() 
+print(pxfit,wx1,wx2,'chi=',chi)
+wy1,wy2=Py.w_fft()
+#d1=np.arange(4,5,0.1)
+#chi,pyfit=Py.minimizing_5P_chi(a,b,d1,d2,c,wy1,wy2,f)
+#mplt.plot(Py.t,Py.q)
+#mplt.plot(Py.t,f(Py.t,*pyfit))
+#mplt.xlabel('t')
+#mplt.ylabel('y')
+#mplt.grid()
+#mplt.savefig('estmy_md1.png')
+#mplt.show() 
+#print(pyfit,wy1,wy2,'chi=',chi)
+a=np.arange(2,3,0.1)
+b=np.arange(-10,10,0.5)
+chi,pxfit=Px.minimizing_2P_chi(a,b,)
+mplt.plot(Px.t,Px.q)
+mplt.plot(Px.t,f(Px.t,*pxfit))
+mplt.xlabel('t')
+mplt.ylabel('x')
+mplt.grid()
+mplt.savefig('estmx_md1.png')
+mplt.show() 
+print(pxfit,wx1,wx2,'chi=',chi)
