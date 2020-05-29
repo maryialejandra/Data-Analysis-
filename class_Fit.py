@@ -95,7 +95,7 @@ class fitting:
                 for k in c:
                     for t1 in theta1:
                         for t2 in theta2:
-                            if i==a[0]:
+                            if (i==a[0] and j==b[0] and k==c[0] and t1==theta1[0] and t2==theta2[0]):
                                 yt=g(self.t,i,j,t1,t2,w1,w2,k)
                                 chi=chi2(self.q,yt)
                                 dat=[i,j,t1,t2,w1,w2,k]
